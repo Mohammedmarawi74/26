@@ -167,13 +167,13 @@ const App: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[#0f172a] flex flex-col md:flex-row h-screen overflow-hidden font-[IBM Plex Sans Arabic]" dir="rtl">
+    <div className="app-container" dir="rtl">
       
       {/* Sidebar */}
-      <div className="w-full md:w-[400px] bg-[#1e293b] border-l border-slate-700 flex flex-col overflow-hidden z-20 shadow-2xl">
+      <div className="app-sidebar">
         
         {/* Tabs Header */}
-        <div className="flex border-b border-slate-700 bg-[#111827]">
+        <div className="sidebar-tabs-header">
           {[
             { id: 'ai', icon: Sparkles, label: 'الذكاء' },
             { id: 'text', icon: TypeIcon, label: 'النصوص' },
@@ -183,38 +183,34 @@ const App: React.FC = () => {
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id as any)}
-              className={`flex-1 flex flex-col items-center py-4 gap-1 transition-all ${
-                activeTab === tab.id 
-                  ? 'bg-[#1e293b] text-cyan-400 border-b-2 border-cyan-400' 
-                  : 'text-slate-500 hover:text-slate-300'
-              }`}
+              className={`sidebar-tab-btn ${activeTab === tab.id ? 'active' : ''}`}
             >
               <tab.icon size={20} />
-              <span className="text-[10px] font-[700] uppercase">{tab.label}</span>
+              <span className="sidebar-tab-label">{tab.label}</span>
             </button>
           ))}
         </div>
 
         {/* Tab Content Area */}
-        <div className="flex-grow overflow-y-auto p-6 scrollbar-hide space-y-8">
+        <div className="sidebar-content scrollbar-hide">
           
           {/* AI TAB */}
           {activeTab === 'ai' && (
             <div className="space-y-6">
-              <div className="p-4 bg-cyan-900/20 rounded-xl border border-cyan-500/30">
-                <h3 className="text-cyan-400 font-[700] mb-3 flex items-center gap-2">
+              <div className="section-info-box">
+                <h3 className="section-title">
                   <Sparkles size={16} /> توليد محتوى ذكي
                 </h3>
                 <textarea
                   value={aiPrompt}
                   onChange={(e) => setAiPrompt(e.target.value)}
                   placeholder="مثال: فوائد التمور السعودية، شروط دعم ريف..."
-                  className="w-full p-3 rounded-lg bg-slate-800 border border-slate-600 text-white text-sm min-h-[100px] focus:border-cyan-500 outline-none font-[400]"
+                  className="editor-textarea"
                 />
                 <button
                   onClick={handleAiGenerate}
                   disabled={isGenerating}
-                  className="w-full mt-4 bg-cyan-600 hover:bg-cyan-500 text-white font-[700] py-3 rounded-lg flex items-center justify-center gap-2 transition-all disabled:opacity-50 shadow-lg shadow-cyan-900/20"
+                  className="primary-btn"
                 >
                   {isGenerating ? <Loader2 className="animate-spin" size={20} /> : 'توليد بالذكاء الاصطناعي'}
                 </button>
@@ -225,19 +221,40 @@ const App: React.FC = () => {
           {/* TEXT TAB */}
           {activeTab === 'text' && (
             <div className="space-y-6">
-               <h3 className="text-slate-300 font-[700] mb-4">تعديل النصوص</h3>
+               <h3 className="section-header-gray">تعديل النصوص</h3>
                <div className="space-y-4">
                   <div>
-                    <label className="text-xs text-slate-500 mb-1 block font-[500]">العنوان الرئيسي</label>
-                    <input type="text" value={currentSlide.header} onChange={(e) => updateSlide({ header: e.target.value })} className="w-full p-2.5 bg-slate-800 border border-slate-600 rounded text-slate-200 outline-none focus:border-cyan-500 font-[400]" />
+                    <label className="editor-label">العنوان الرئيسي</label>
+                    <input type="text" value={currentSlide.header} onChange={(e) => updateSlide({ header: e.target.value })} className="editor-input" />
                   </div>
                   <div>
-                    <label className="text-xs text-slate-500 mb-1 block font-[500]">الكلمة المميزة (ذهبي)</label>
-                    <input type="text" value={currentSlide.highlightedHeader} onChange={(e) => updateSlide({ highlightedHeader: e.target.value })} className="w-full p-2.5 bg-slate-800 border border-slate-600 rounded text-slate-200 outline-none focus:border-cyan-500 font-[400]" />
+                    <label className="editor-label">الكلمة المميزة (ذهبي)</label>
+                    <input type="text" value={currentSlide.highlightedHeader} onChange={(e) => updateSlide({ highlightedHeader: e.target.value })} className="editor-input" />
                   </div>
                   <div>
-                    <label className="text-xs text-slate-500 mb-1 block font-[500]">العنوان الفرعي</label>
-                    <input type="text" value={currentSlide.subHeader} onChange={(e) => updateSlide({ subHeader: e.target.value })} className="w-full p-2.5 bg-slate-800 border border-slate-600 rounded text-slate-200 outline-none focus:border-cyan-500 font-[400]" />
+                    <label className="editor-label">العنوان الفرعي</label>
+                    <input type="text" value={currentSlide.subHeader} onChange={(e) => updateSlide({ subHeader: e.target.value })} className="editor-input" />
+                  </div>
+
+                  <div className="pt-4 border-t border-slate-700">
+                    <label className="text-xs text-slate-400 mb-4 block font-[700] uppercase tracking-wider">نقاط المحتوى</label>
+                    <div className="space-y-3">
+                      {currentSlide.points.map((point, idx) => (
+                        <div key={point.id}>
+                          <label className="text-[10px] text-slate-500 mb-1 block font-[500]">النقطة {idx + 1}</label>
+                          <input 
+                            type="text" 
+                            value={point.title} 
+                            onChange={(e) => {
+                              const newPoints = [...currentSlide.points];
+                              newPoints[idx] = { ...point, title: e.target.value };
+                              updateSlide({ points: newPoints });
+                            }} 
+                            className="editor-input opacity-80" 
+                          />
+                        </div>
+                      ))}
+                    </div>
                   </div>
                </div>
             </div>
@@ -312,6 +329,7 @@ const App: React.FC = () => {
                 </div>
               </div>
 
+              {/* Logo Upload Section - Keep as is for now or add simple class */}
               <div className="pt-4 border-t border-slate-700">
                 <label className="text-xs text-slate-400 mb-3 block font-[700] uppercase tracking-wider">شعارك الخاص</label>
                 <div className="flex items-center gap-4">
@@ -337,7 +355,7 @@ const App: React.FC = () => {
           {activeTab === 'custom' && (
             <div className="space-y-6">
               <div>
-                <h3 className="text-cyan-400 font-[700] mb-4 flex items-center justify-between">قوالب جاهزة (SNIPPETS)</h3>
+                <h3 className="section-title">قوالب جاهزة (SNIPPETS)</h3>
                 <div className="grid grid-cols-2 gap-3">
                   {CSS_SNIPPETS.map((snippet) => (
                     <button
@@ -353,19 +371,19 @@ const App: React.FC = () => {
               </div>
 
               <div className="mt-8">
-                <h3 className="text-cyan-400 font-[700] mb-2">محرر CSS المتقدم</h3>
+                <h3 className="section-title">محرر CSS المتقدم</h3>
                 <div className="relative">
                   <textarea
                     value={currentSlide.customCss || ''}
                     onChange={(e) => updateSlide({ customCss: e.target.value })}
                     placeholder="...تخصيص التصميم عبر CSS"
-                    className="w-full h-[250px] p-4 bg-[#0a0f1c] border border-slate-700 rounded-xl text-cyan-500 font-mono text-xs focus:ring-2 focus:ring-cyan-500 outline-none resize-none"
+                    className="editor-textarea h-[250px] font-mono text-xs resize-none"
                     dir="ltr"
                   />
                 </div>
                 <button
                   onClick={() => updateSlide({ customCss: '' })}
-                  className="w-full mt-4 bg-slate-800 hover:bg-slate-700 text-slate-400 py-3 rounded-lg text-xs font-[700] flex items-center justify-center gap-2 border border-slate-700"
+                  className="w-full mt-4 bg-slate-800 hover:bg-slate-700 text-slate-400 py-3 rounded-lg text-xs font-[700] flex items-center justify-center gap-2 border border-slate-700 transition-colors"
                 >
                   <RotateCcw size={14} /> إعادة تعيين CSS
                 </button>
@@ -374,11 +392,11 @@ const App: React.FC = () => {
           )}
         </div>
 
-        <div className="p-6 bg-[#111827] border-t border-slate-700">
+        <div className="sidebar-footer">
            <button 
              onClick={handleDownload}
              disabled={isExporting}
-             className="w-full bg-cyan-600 hover:bg-cyan-500 text-white font-[700] py-4 rounded-xl flex items-center justify-center gap-3 transition-all shadow-xl shadow-cyan-900/20 disabled:opacity-50"
+             className="primary-btn py-4 shadow-xl"
            >
              {isExporting ? <Loader2 className="animate-spin" size={20} /> : <Download size={20} />}
              {isExporting ? 'جاري التصدير...' : 'تحميل الصور النهائية'}
@@ -387,50 +405,50 @@ const App: React.FC = () => {
       </div>
 
       {/* Main Workspace (Preview) */}
-      <div className="flex-grow flex flex-col items-center bg-[#0a0f1c] overflow-y-auto p-4 md:p-12 relative scrollbar-hide">
+      <div className="preview-container scrollbar-hide">
         {/* Background Gradients */}
-        <div className="fixed top-0 right-0 w-[500px] h-[500px] bg-cyan-900/10 blur-[120px] rounded-full pointer-events-none"></div>
-        <div className="fixed bottom-0 left-0 w-[400px] h-[400px] bg-emerald-900/10 blur-[100px] rounded-full pointer-events-none"></div>
+        <div className="preview-glow-1"></div>
+        <div className="preview-glow-2"></div>
 
         {/* Slide Controls Top */}
-        <div className="w-full max-w-[420px] flex justify-between items-center mb-6 z-10 sticky top-0 bg-[#0a0f1c]/80 backdrop-blur-md py-4">
+        <div className="preview-controls-bar">
           <div className="flex items-center gap-4">
-            <span className="text-xs font-[700] text-slate-500 uppercase tracking-widest">الشريحة {currentIndex + 1}</span>
-            <div className="flex gap-2">
+            <span className="slide-info-label">الشريحة {currentIndex + 1}</span>
+            <div className="slide-dots-container">
               {slides.map((_, i) => (
                 <button
                   key={i}
                   onClick={() => setCurrentIndex(i)}
-                  className={`w-2 h-2 rounded-full transition-all ${currentIndex === i ? 'bg-cyan-400 w-6' : 'bg-slate-700'}`}
+                  className={`slide-dot ${currentIndex === i ? 'active' : ''}`}
                 />
               ))}
-              <button onClick={addSlide} className="w-5 h-5 flex items-center justify-center bg-slate-800 rounded text-slate-400 hover:text-cyan-400 border border-slate-700">
+              <button onClick={addSlide} className="add-slide-btn">
                 <Plus size={12} />
               </button>
             </div>
           </div>
-          <button onClick={() => removeSlide(currentIndex)} className="text-slate-500 hover:text-red-400 transition-colors">
+          <button onClick={() => removeSlide(currentIndex)} className="delete-slide-btn">
             <Trash2 size={18} />
           </button>
         </div>
 
         {/* Preview Container */}
-        <div className="w-full max-w-[420px] relative z-10 group mb-12">
+        <div className="canvas-preview-wrapper group">
           {/* Navigation Arrows (Desktop) */}
-          <button onClick={() => setCurrentIndex(p => Math.max(0, p - 1))} disabled={currentIndex === 0} className="fixed top-1/2 right-[420px] md:right-[calc(50%+230px)] -translate-y-1/2 p-4 bg-[#1e293b] text-white rounded-full shadow-2xl opacity-0 group-hover:opacity-100 transition-opacity disabled:hidden border border-slate-700 hidden lg:flex">
+          <button onClick={() => setCurrentIndex(p => Math.max(0, p - 1))} disabled={currentIndex === 0} className="nav-arrow-btn btn-prev">
             <ChevronRight size={24} />
           </button>
-          <button onClick={() => setCurrentIndex(p => Math.min(slides.length - 1, p + 1))} disabled={currentIndex === slides.length - 1} className="fixed top-1/2 left-[calc(50%-230px)] md:left-24 lg:left-[calc(50%-630px)] -translate-y-1/2 p-4 bg-[#1e293b] text-white rounded-full shadow-2xl opacity-0 group-hover:opacity-100 transition-opacity disabled:hidden border border-slate-700 hidden lg:flex">
+          <button onClick={() => setCurrentIndex(p => Math.min(slides.length - 1, p + 1))} disabled={currentIndex === slides.length - 1} className="nav-arrow-btn btn-next">
             <ChevronLeft size={24} />
           </button>
 
           {/* THE CANVAS */}
-          <div className="w-full aspect-[9/16] shadow-[0_0_80px_rgba(0,0,0,0.6)] rounded-[2.5rem] overflow-hidden border border-slate-800 ring-8 ring-slate-900/50">
+          <div className="canvas-frame">
             <SlideCanvas data={currentSlide} onUpdate={updateSlide} />
           </div>
         </div>
 
-        <p className="mb-12 text-slate-600 text-[10px] font-[700] uppercase tracking-[0.3em] z-10 text-center">
+        <p className="preview-footer-text">
           دقة عالية • 1080 × 1920 • معاينة واقعية • {isExporting ? 'جاري المعالجة...' : 'جاهز للتصدير'}
         </p>
       </div>
